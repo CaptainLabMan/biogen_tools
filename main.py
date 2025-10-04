@@ -70,6 +70,7 @@ def filter_fastq(seqs: dict, gc_bounds: int | float | tuple = (0, 100), length_b
     output = {}
     for seq_id in seqs:
         seq, qual = seqs[seq_id]
+        seq = seq.upper()
         is_valid_gc_ = is_valid_gc(seq, gc_bounds)
         is_valid_length_ = is_valid_length(seq, length_bounds)
         is_valid_quality_ = is_valid_quality(qual, quality_threshold)
