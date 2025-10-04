@@ -1,7 +1,7 @@
 from collections import Counter
 
 
-def is_valid_gc(seq: str, gc_bounds: int | tuple | list) -> bool:
+def is_valid_gc(seq: str, gc_bounds: int | float | tuple | list) -> bool:
     '''
     Performs a GC content check of the nucleotide sequence.
 
