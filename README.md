@@ -18,6 +18,7 @@ You don't need that...
 
 ## Usage and examples
 
+### main.py
 run_dna_rna_tools - Performs validation and various operations on a nucleotide sequence (DNA or RNA).
 ```python
 run_dna_rna_tools('TTUU', 'is_nucleic_acid') # False !!
@@ -33,6 +34,7 @@ filter_fastq - Filter FASTQ reads by GC%, length, and mean Phred quality; write 
 filter_fastq(seqs = EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (10, 30), quality_threshold = 10)
 ```
 
+### bio_files_processor.py
 convert_multiline_fasta_to_oneline – Converts multi-line FASTA sequences into a single-line format and saves the result.
 ```python
 convert_multiline_fasta_to_oneline(input_fasta: "input.fasta", output_fasta: "output.fasta")
