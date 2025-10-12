@@ -2,7 +2,7 @@
 
 # BioGen
 
-BioGen is a toolkit for genetic data processing. It allows you to evaluate, validate and prepare your nucleotide sequences for downstream analysis.
+BioGen is a toolkit for genetic data processing. It allows you to evaluate, validate, and prepare your nucleotide sequences for downstream analysis, including FASTQ filtering by GC%, length, and quality; FASTA reformatting; BLAST best-hit extraction; and retrieval of flanking genes from GenBank files.
 
 Authors:
 * Andrey Nekrasov
