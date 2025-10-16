@@ -49,7 +49,7 @@ def run_dna_rna_tools(*args: str) -> str | list:
     return results
 
 
-def filter_fastq(input_fastq: str, output_fastq: str, gc_bounds: int | float | tuple = (0, 100), length_bounds: int | float | tuple = (0, 2**32), quality_threshold: int = 0, overwrite=False) -> str:
+def filter_fastq(input_fastq: str, output_fastq: str, gc_bounds: int | float | tuple = (0, 100), length_bounds: int | float | tuple = (0, 2**32), quality_threshold: int = 0, overwrite: bool = False) -> str:
     '''
     Filter FASTQ reads by GC%, length, and mean Phred quality; write passing reads to output.
 

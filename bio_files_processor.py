@@ -104,9 +104,9 @@ def select_genes_from_gbk_to_fasta(input_gbk: str, genes: str | list, n_before: 
 
                 if first_column:
                     if feature_data:
-                        if len(feature_buffer) == feature_buffer_size:  # Поддержание буфера нужной размерности
-                            del feature_buffer[0]
                         if {'gene', 'translation'} <= feature_data.keys():  # Добавляем feature только с нужными тэгами
+                            if len(feature_buffer) == feature_buffer_size:  # Поддержание буфера нужной размерности
+                                del feature_buffer[0]
                             feature_buffer.append(feature_data)
 
                             gene = feature_data.get('gene')
