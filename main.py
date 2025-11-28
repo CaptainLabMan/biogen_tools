@@ -1,9 +1,8 @@
 import modules.dna_rna_tools as drt
 from modules.fastq_tools import is_valid_gc, is_valid_length, is_valid_quality
 
-
-# HW 3 https://github.com/Python-BI-2025-26/hw3-functions-CaptainLabMan
-# HW 4 https://github.com/Python-BI-2025-26/course_materials/blob/main/homeworks/HW4_Modules/HW4_Modules.md
+import os
+from pathlib import Path
 
 
 processes = {
@@ -35,6 +34,7 @@ def run_dna_rna_tools(*args: str) -> str | list:
     *seqs, proc = args
     single_seq = len(args) == 2
     results = []
+
     for seq in seqs:
         if proc == 'is_nucleic_acid':
             result = processes['is_nucleic_acid'](seq)
@@ -49,31 +49,41 @@ def run_dna_rna_tools(*args: str) -> str | list:
     return results
 
 
-def filter_fastq(seqs: dict, gc_bounds: int | float | tuple = (0, 100), length_bounds: int | float | tuple = (0, 2**32), quality_threshold: int = 0) -> dict:
+def filter_fastq(input_fastq: str, output_fastq: str, gc_bounds: int | float | tuple = (0, 100), length_bounds: int | float | tuple = (0, 2**32), quality_threshold: int = 0, overwrite: bool = False) -> str:
     '''
-    Performs evaluation of various parameters of reads from a FASTQ file.
+    Filter FASTQ reads by GC%, length, and mean Phred quality; write passing reads to output.
 
-    Available operations:
-     - is_valid_gc
-     - length_bounds
-     - is_valid_quality
+    Args:
+        input_fastq: Path to input FASTQ.
+        output_fastq: Path to output FASTQ (overwrites).
+        gc_bounds: Allowed GC% (max or (min, max)).
+        length_bounds: Allowed read length (max or (min, max)).
+        quality_threshold: Minimum mean Phred score.
 
-    Arguments:
-    seqs: dict
-    gc_bounds: int | float | tuple
-    length_bounds: int | float | tuple
-    quality_threshold: int
-
-    Returns dict
+    Returns:
+        Path to output_fastq.
     '''
 
-    output = {}
-    for seq_id in seqs:
-        seq, qual = seqs[seq_id]
-        seq = seq.upper()
-        is_valid_gc_ = is_valid_gc(seq, gc_bounds)
-        is_valid_length_ = is_valid_length(seq, length_bounds)
-        is_valid_quality_ = is_valid_quality(qual, quality_threshold)
-        if is_valid_gc_ and is_valid_length_ and is_valid_quality_:
-            output[seq_id] = seqs[seq_id]
-    return output
+    input_filepath = os.path.abspath(input_fastq)
+    output_dir = '/'.join(input_filepath.split('/')[0:-1]) + '/filtered'
+    output_filename = output_fastq.split('/')[-1]
+    output_filepath = f'{output_dir}/{output_filename}'
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    if os.path.exists(output_filepath) and not overwrite:
+        print(f'ПРЕДУПРЕЖДЕНИЕ: такой файл уже существует: {output_filepath}')
+        return None
+
+    with open(input_fastq, 'r') as input_fastq_file, open(output_filepath, 'w') as output_fastq_file:
+        fastq_data = []
+        for row in input_fastq_file:
+            fastq_data.append(row.strip())
+            if len(fastq_data) == 4:
+                header, seq, sep, qual = fastq_data
+                is_valid_gc_ = is_valid_gc(seq, gc_bounds)
+                is_valid_length_ = is_valid_length(seq, length_bounds)
+                is_valid_quality_ = is_valid_quality(qual, quality_threshold)
+                if is_valid_gc_ and is_valid_length_ and is_valid_quality_:
+                    output_fastq_file.write(f'{header}\n{seq}\n{sep}\n{qual}\n')
+                fastq_data = []
+    return output_filepath

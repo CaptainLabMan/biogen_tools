@@ -1,4 +1,4 @@
-def is_nucleic_acid(seq):
+def is_nucleic_acid(seq: str) -> bool:
     if not seq:
         return False
     seq = set(seq.upper())
@@ -7,15 +7,15 @@ def is_nucleic_acid(seq):
     return seq <= dna_set or seq <= rna_set
 
 
-def transcribe(seq):
+def transcribe(seq: str) -> str:
     return seq.replace('T', 'U').replace('t', 'u')
 
 
-def reverse(seq):
+def reverse(seq: str) -> str:
     return seq[::-1]
 
 
-def complement(seq):
+def complement(seq: str) -> str:
     dna_nucs = {
         'T': 'A',
         'A': 'T',
@@ -37,5 +37,5 @@ def complement(seq):
     return comp_seq
 
 
-def reverse_complement(seq):
-    return complement(seq)[::-1]
+def reverse_complement(seq: str) -> str:
+    return reverse(complement(seq))
