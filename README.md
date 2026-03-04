@@ -19,19 +19,53 @@ You don't need that...
 ## Usage and examples
 
 ### main.py
-run_dna_rna_tools - Performs validation and various operations on a nucleotide sequence (DNA or RNA).
+
+#### Biological sequence classes
+
+`BiologicalSequence` — abstract base class for all biological sequences. Supports `len()`, indexing, slicing, and alphabet validation.
+
+`NucleicAcidSequence(BiologicalSequence)` — base class for nucleic acids. Provides `reverse()`, `complement()`, `reverse_complement()`.
 ```python
-run_dna_rna_tools('TTUU', 'is_nucleic_acid') # False !!
-run_dna_rna_tools('ATG', 'transcribe') # 'AUG'
-run_dna_rna_tools('ATG', 'reverse') # 'GTA'
-run_dna_rna_tools('AtG', 'complement') # 'TaC'
-run_dna_rna_tools('ATg', 'reverse_complement') # 'cAT'
-run_dna_rna_tools('ATG', 'aT', 'reverse') # ['GTA', 'Ta']
+seq = NucleicAcidSequence('ATGC')
+seq.reverse()            # 'CGTA'
+seq.complement()         # 'TACG'
+seq.reverse_complement() # 'GCAT'
+seq.is_valid()           # True
 ```
 
-filter_fastq - Filter FASTQ reads by GC%, length, and mean Phred quality; write passing reads to output.
+`DNASequence(NucleicAcidSequence)` — DNA sequence. Adds `transcribe()`.
 ```python
-filter_fastq(seqs = EXAMPLE_FASTQ, gc_bounds = (20, 80), length_bounds = (10, 30), quality_threshold = 10)
+dna = DNASequence('ATGCGT')
+dna.transcribe()         # 'AUGCGU'
+dna.is_valid()           # True
+DNASequence('AUGC').is_valid()  # False — U not allowed in DNA
+```
+
+`RNASequence(NucleicAcidSequence)` — RNA sequence.
+```python
+rna = RNASequence('AUGCGU')
+rna.complement()         # 'UACGCA'
+rna.is_valid()           # True
+```
+
+`AminoAcidSequence(BiologicalSequence)` — protein sequence. Adds `triple_alphabet()` for one-to-three letter conversion.
+```python
+prot = AminoAcidSequence('MKTLL')
+prot.triple_alphabet()   # 'MetLysThrLeuLeu'
+prot.is_valid()          # True
+```
+
+#### filter_fastq
+
+Filters FASTQ reads by GC%, length, and mean Phred quality using Biopython (`SeqIO`, `gc_fraction`). Writes results directly to file without accumulating reads in memory.
+```python
+filter_fastq(
+    input_fastq='example_data/example_fastq.fastq',
+    output_fastq='output.fastq',
+    gc_bounds=(20, 80),
+    length_bounds=(10, 100),
+    quality_threshold=20
+)
 ```
 
 ### bio_files_processor.py
