@@ -68,22 +68,6 @@ filter_fastq(
 )
 ```
 
-### bio_files_processor.py
-convert_multiline_fasta_to_oneline – Converts multi-line FASTA sequences into a single-line format and saves the result.
-```python
-convert_multiline_fasta_to_oneline(input_fasta: "input.fasta", output_fasta: "output.fasta")
-```
-
-parse_blast_output - Parses a BLAST output file and keeps only the best match for each query sequence.
-```python
-parse_blast_output(input_file: "input.txt", output_file: "output.txt")
-```
-
-select_genes_from_gbk_to_fasta - Extracts the nearest flanking genes of a target gene from a GenBank file and saves them in FASTA format.
-```python
-select_genes_from_gbk_to_fasta(input_gbk: "input.gbk", genes: ["gene1", "gene2"], n_before: 20, n_after: 25, output_fasta: "output.fasta")
-```
-
 
 ## License
 
