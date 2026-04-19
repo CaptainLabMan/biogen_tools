@@ -68,6 +68,38 @@ filter_fastq(
 )
 ```
 
+#### Command-line usage
+
+Run the script from the `biogen_tools` directory:
+```bash
+python3 main.py example_data/example_fastq.fastq filtered.fastq --gc-min 10 --gc-max 90 \
+    --length-min 50 --length-max 150 --quality-threshold 20 --overwrite
+```
+
+This creates the output file in `filtered/filtered.fastq` and appends log messages to `biogen.log` by default.
+
+You can also set a custom log file:
+```bash
+python3 main.py example_data/example_fastq.fastq filtered.fastq --log-file mylog.log
+```
+
+The script logs informational messages when filtering starts and finishes, and logs errors if the output file already exists or the input file is missing.
+
+### Testing
+
+Tests are stored in `tests/test_main.py` and cover:
+- command-line parsing
+- FASTQ output creation
+- GC, length, and quality filtering
+- overwrite protection
+- error handling for missing input files
+- logging of informational and error messages
+
+Run the suite with:
+```bash
+python3 -m pytest -q
+```
+
 
 ## License
 
