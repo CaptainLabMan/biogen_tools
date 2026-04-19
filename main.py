@@ -1,6 +1,9 @@
 from Bio import SeqIO
 from Bio.SeqUtils import gc_fraction
+import argparse
+import logging
 import os
+import sys
 from pathlib import Path
 from abc import ABC, abstractmethod
 
@@ -114,28 +117,47 @@ class AminoAcidSequence(BiologicalSequence):
 
 # ===================================================================================
 # ===================================================================================
+def configure_logging(log_file: str = 'biogen.log') -> logging.Logger:
+    logger = logging.getLogger('biogen')
+    logger.setLevel(logging.INFO)
+
+    if not logger.handlers:
+        handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+    return logger
+
+
+def parse_args(args=None):
+    parser = argparse.ArgumentParser(
+        description='Filter FASTQ reads by GC%, length, and quality'
+    )
+    parser.add_argument('input_fastq', help='Input FASTQ path')
+    parser.add_argument('output_fastq', help='Output FASTQ filename')
+    parser.add_argument('--gc-min', type=float, default=0, help='Minimum GC percentage')
+    parser.add_argument('--gc-max', type=float, default=100, help='Maximum GC percentage')
+    parser.add_argument('--length-min', type=int, default=0, help='Minimum read length')
+    parser.add_argument('--length-max', type=int, default=2**32, help='Maximum read length')
+    parser.add_argument('--quality-threshold', type=int, default=0, help='Minimum average Phred quality')
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing output file')
+    parser.add_argument('--simulate-error', action='store_true', help='Log an artificial error and exit')
+    parser.add_argument('--log-file', default='biogen.log', help='Log file path')
+    return parser.parse_args(args)
+
+
 def filter_fastq(
     input_fastq: str,
     output_fastq: str,
     gc_bounds: int | float | tuple = (0, 100),
     length_bounds: int | float | tuple = (0, 2**32),
     quality_threshold: int = 0,
-    overwrite: bool = False
-) -> str:
-    
-    '''
-    Filter FASTQ reads by GC%, length, and mean Phred quality; write passing reads to output.
-
-    Args:
-        input_fastq: Path to input FASTQ.
-        output_fastq: Path to output FASTQ (overwrites).
-        gc_bounds: Allowed GC% (max or (min, max)).
-        length_bounds: Allowed read length (max or (min, max)).
-        quality_threshold: Minimum mean Phred score.
-
-    Returns:
-        Path to output_fastq.
-    '''
+    overwrite: bool = False,
+    logger: logging.Logger | None = None,
+) -> str | None:
+    if logger is None:
+        logger = logging.getLogger('biogen')
 
     input_filepath = os.path.abspath(input_fastq)
     output_dir = os.path.join(os.path.dirname(input_filepath), 'filtered')
@@ -143,8 +165,10 @@ def filter_fastq(
     output_filepath = os.path.join(output_dir, output_filename)
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+    logger.info('Starting FASTQ filter from %s to %s', input_filepath, output_filepath)
+
     if os.path.exists(output_filepath) and not overwrite:
-        print(f'ПРЕДУПРЕЖДЕНИЕ: файл уже существует: {output_filepath}')
+        logger.error('Output file already exists and overwrite is disabled: %s', output_filepath)
         return None
 
     if isinstance(gc_bounds, (int, float)):
@@ -152,18 +176,61 @@ def filter_fastq(
     if isinstance(length_bounds, (int, float)):
         length_bounds = (0, length_bounds)
 
-    with open(output_filepath, 'w') as out_handle:
-        for record in SeqIO.parse(input_filepath, 'fastq'):
-            gc = gc_fraction(record.seq) * 100
-            seq_len = len(record.seq)
-            qualities = record.letter_annotations['phred_quality']
-            mean_quality = sum(qualities) / len(qualities)
+    try:
+        with open(output_filepath, 'w') as out_handle:
+            for record in SeqIO.parse(input_filepath, 'fastq'):
+                gc = gc_fraction(record.seq) * 100
+                seq_len = len(record.seq)
+                qualities = record.letter_annotations['phred_quality']
+                mean_quality = sum(qualities) / len(qualities)
 
-            gc_ok = gc_bounds[0] <= gc <= gc_bounds[1]
-            len_ok = length_bounds[0] <= seq_len <= length_bounds[1]
-            qual_ok = mean_quality >= quality_threshold
+                gc_ok = gc_bounds[0] <= gc <= gc_bounds[1]
+                len_ok = length_bounds[0] <= seq_len <= length_bounds[1]
+                qual_ok = mean_quality >= quality_threshold
 
-            if gc_ok and len_ok and qual_ok:
-                SeqIO.write(record, out_handle, 'fastq')
+                if gc_ok and len_ok and qual_ok:
+                    SeqIO.write(record, out_handle, 'fastq')
+    except FileNotFoundError:
+        logger.error('Input FASTQ file not found: %s', input_filepath)
+        return None
+    except Exception as exc:
+        logger.error('Filtering failed: %s', exc)
+        return None
 
+    logger.info(
+        'Filtered FASTQ written to %s with gc bounds=%s, length bounds=%s, quality threshold=%s',
+        output_filepath,
+        gc_bounds,
+        length_bounds,
+        quality_threshold,
+    )
     return output_filepath
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    logger = configure_logging(args.log_file)
+
+    if args.simulate_error:
+        simulate_error(logger)
+        sys.exit(1)
+
+    output_path = filter_fastq(
+        args.input_fastq,
+        args.output_fastq,
+        gc_bounds=(args.gc_min, args.gc_max),
+        length_bounds=(args.length_min, args.length_max),
+        quality_threshold=args.quality_threshold,
+        overwrite=args.overwrite,
+        logger=logger,
+    )
+
+    if output_path is None:
+        logger.error('No output was written because the filter did not complete successfully.')
+        sys.exit(1)
+
+    print(output_path)
+
+
+if __name__ == '__main__':
+    main()

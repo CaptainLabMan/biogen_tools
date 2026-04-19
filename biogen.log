@@ -1,0 +1,5 @@
+2026-04-19 23:46:05,678 INFO Starting FASTQ filter from /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/example_fastq.fastq to /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/filtered/filtered.fastq
+2026-04-19 23:46:05,683 INFO Filtered FASTQ written to /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/filtered/filtered.fastq with gc bounds=(0, 100), length bounds=(0, 4294967296), quality threshold=0
+2026-04-19 23:46:09,008 INFO Starting FASTQ filter from /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/example_fastq.fastq to /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/filtered/filtered.fastq
+2026-04-19 23:46:09,009 ERROR Output file already exists and overwrite is disabled: /Users/andrejnekrasov/IB/python_lessons/hw21/biogen_tools/example_data/filtered/filtered.fastq
+2026-04-19 23:46:09,009 ERROR No output was written because the filter did not complete successfully.
